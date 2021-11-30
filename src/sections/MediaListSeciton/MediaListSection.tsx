@@ -4,7 +4,7 @@ import { Query } from "../../types/anilist/anilist";
 import contrast from "contrast";
 import "./MediaListSection.scss";
 interface IProps {
-  data: Query;
+  data: Query | undefined;
   loading: boolean;
   sectionTitle: string;
 }
@@ -25,8 +25,11 @@ const MediaListSection: React.FC<IProps> = ({
           : data?.Page?.media
           ? data.Page.media.map((m) => {
               if (m) {
-                const backgroundColor = m.coverImage?.color || "";
-                const color = backgroundColor === "light" ? "#000" : ";#f9f9f9";
+                // colour can be null from api response, set a fallback
+                const backgroundColor = m.coverImage?.color || "#f4f4f4";
+                const contrastValue = contrast(backgroundColor);
+
+                const color = contrastValue === "light" ? "#000000" : "#f9f9f9";
 
                 return (
                   <div>

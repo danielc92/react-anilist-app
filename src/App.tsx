@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.scss";
 import { gql, useQuery } from "@apollo/client";
-import { MediaSort, MediaTrendSort } from "./types/anilist/anilist";
+import { MediaSort, PageMediaArgs, Query } from "./types/anilist/anilist";
 import MediaListSection from "./sections/MediaListSeciton/MediaListSection";
 
 const MEDIA_FRAGMENT = `
@@ -33,8 +33,8 @@ const MEDIA_FRAGMENT = `
         meanScore`;
 
 const GET_PAGE_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $perPage: Int) {
-    Page(perPage: $perPage) {
+  query getPageMedia($sort: [MediaSort]) {
+    Page(perPage: 10) {
       media(isAdult: false, type: ANIME, status: RELEASING, sort: $sort) {
         ${MEDIA_FRAGMENT}
       }
@@ -42,37 +42,32 @@ const GET_PAGE_MEDIA = gql`
   }
 `;
 
-interface IQueryVariables {
-  sort: MediaSort;
-  perPage: number;
-}
-
 function App() {
   const { loading: loadingTrending, data: dataTrending } = useQuery<
-    any,
-    IQueryVariables
+    Query,
+    PageMediaArgs
   >(GET_PAGE_MEDIA, {
     variables: {
-      sort: MediaSort.TrendingDesc,
-      perPage: 12,
+      sort: [MediaSort.TrendingDesc],
+    },
+    onCompleted(data) {
+      console.log(data);
     },
   });
 
   const { loading: loadingPopularity, data: dataPopularity } = useQuery<
-    any,
-    IQueryVariables
+    Query,
+    PageMediaArgs
   >(GET_PAGE_MEDIA, {
     variables: {
-      sort: MediaSort.PopularityDesc,
-      perPage: 12,
+      sort: [MediaSort.PopularityDesc],
     },
   });
-  const { loading: loadingFav, data: dataFav } = useQuery<any, IQueryVariables>(
+  const { loading: loadingFav, data: dataFav } = useQuery<Query, PageMediaArgs>(
     GET_PAGE_MEDIA,
     {
       variables: {
-        sort: MediaSort.FavouritesDesc,
-        perPage: 12,
+        sort: [MediaSort.FavouritesDesc],
       },
     }
   );

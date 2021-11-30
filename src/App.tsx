@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.scss";
 import { gql, useQuery } from "@apollo/client";
-import { MediaTrendSort } from "./types/anilist/anilist";
+import { MediaSort, MediaTrendSort } from "./types/anilist/anilist";
 import MediaListSection from "./sections/MediaListSeciton/MediaListSection";
 
 const MEDIA_FRAGMENT = `
@@ -16,6 +16,7 @@ const MEDIA_FRAGMENT = `
         coverImage {
           large
           extraLarge
+          color
         }
         siteUrl
         startDate {
@@ -34,7 +35,7 @@ const MEDIA_FRAGMENT = `
 const GET_PAGE_MEDIA = gql`
   query getPageMedia($sort: [MediaSort], $perPage: Int) {
     Page(perPage: $perPage) {
-      media(type: ANIME, status: RELEASING, sort: $sort) {
+      media(isAdult: false, type: ANIME, status: RELEASING, sort: $sort) {
         ${MEDIA_FRAGMENT}
       }
     }
@@ -42,7 +43,7 @@ const GET_PAGE_MEDIA = gql`
 `;
 
 interface IQueryVariables {
-  sort: MediaTrendSort;
+  sort: MediaSort;
   perPage: number;
 }
 
@@ -52,7 +53,7 @@ function App() {
     IQueryVariables
   >(GET_PAGE_MEDIA, {
     variables: {
-      sort: "TRENDING_DESC" as MediaTrendSort,
+      sort: MediaSort.TrendingDesc,
       perPage: 12,
     },
   });
@@ -62,10 +63,19 @@ function App() {
     IQueryVariables
   >(GET_PAGE_MEDIA, {
     variables: {
-      sort: "POPULARITY_DESC" as MediaTrendSort,
+      sort: MediaSort.PopularityDesc,
       perPage: 12,
     },
   });
+  const { loading: loadingFav, data: dataFav } = useQuery<any, IQueryVariables>(
+    GET_PAGE_MEDIA,
+    {
+      variables: {
+        sort: MediaSort.FavouritesDesc,
+        perPage: 12,
+      },
+    }
+  );
 
   return (
     <div>
@@ -81,6 +91,13 @@ function App() {
         loading={loadingTrending}
         data={dataTrending}
         sectionTitle="Trending Anime"
+      ></MediaListSection>
+
+      {/* latest anime */}
+      <MediaListSection
+        loading={loadingFav}
+        data={dataFav}
+        sectionTitle="Most Favourited"
       ></MediaListSection>
     </div>
   );

@@ -1,0 +1,56 @@
+.section {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+}
+.container {
+  display: grid;
+  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+  &__tag {
+    font-weight: bold;
+    white-space: nowrap;
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 4px 8px;
+    background-color: rgb(199, 214, 236);
+    color: rgb(0, 0, 0);
+    display: inline-block;
+    margin: 0 0 4px 4px;
+  }
+  &__heading {
+    margin: 12px 0;
+    font-size: 16px;
+    color: rgb(71, 71, 71);
+  }
+
+  &__img-wrap {
+    max-height: 350px;
+    overflow: hidden;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+    position: relative;
+  }
+
+  &__score {
+    background: rgb(33, 161, 55);
+    color: rgb(219, 219, 219);
+    height: 24px;
+    padding-left: 4px;
+    padding-right: 4px;
+    font-weight: bold;
+    border-radius: 2px;
+    display: flex;
+    justify-content: space-evenly;
+    top: -6px;
+    right: 4px;
+    position: absolute;
+  }
+
+  &__img-wrap img {
+    height: 100%;
+    width: 100%;
+  }
+}

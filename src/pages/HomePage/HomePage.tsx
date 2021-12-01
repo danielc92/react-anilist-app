@@ -74,7 +74,6 @@ interface PageMediaArgsExtended extends PageMediaArgs {
 }
 
 const seasons = Object.entries(MediaSeason);
-const defaultYear = 2021;
 
 const HomePage: React.FC = () => {
   const buildOptionsFromQuery = (url: string) => {
@@ -84,8 +83,9 @@ const HomePage: React.FC = () => {
 
     const obj: PageMediaArgsExtended = {};
 
-    if (seasonYear) {
-      obj.seasonYear = parseInt(seasonYear as string) || defaultYear;
+    const parsedYear = parseInt(seasonYear as string);
+    if (typeof parsedYear === "number" && parsedYear > 0) {
+      obj.seasonYear = parsedYear;
     }
 
     if (seasons.some((s) => s[1] === season)) {
@@ -98,7 +98,7 @@ const HomePage: React.FC = () => {
     if (page) {
       obj.page = parseInt(page as string) || 1;
     }
-
+    console.log(obj, "lol");
     return obj;
   };
   const { push } = useHistory();
@@ -204,19 +204,19 @@ const HomePage: React.FC = () => {
       <MediaListSection
         loading={loadingPopularity}
         data={dataPopularity}
-        sectionTitle="Popular Anime"
+        sectionTitle="Popular Anime 🏅"
       ></MediaListSection>
 
       <MediaListSection
         loading={loadingTrending}
         data={dataTrending}
-        sectionTitle="Trending Anime"
+        sectionTitle="Trending Anime 🔥"
       ></MediaListSection>
 
       <MediaListSection
         loading={loadingFav}
         data={dataFav}
-        sectionTitle="Most Favourited"
+        sectionTitle="Most Favourited ⭐"
       ></MediaListSection>
     </div>
   );

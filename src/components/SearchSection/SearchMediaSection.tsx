@@ -44,8 +44,10 @@ const SearchMediaSection: React.FC<IProps> = ({
     data.Page.pageInfo.currentPage > 1;
 
   const currentPage = data?.Page?.pageInfo?.currentPage || 1;
+
   return (
     <section className="section">
+      <h1 className="search__title">Daniel's Anime App</h1>
       <div className="search">
         <div className="search__search">
           <input

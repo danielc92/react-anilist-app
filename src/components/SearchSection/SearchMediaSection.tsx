@@ -1,5 +1,5 @@
 import React from "react";
-import { PageMediaArgs, Query } from "../../types/anilist/anilist";
+import { MediaSeason, PageMediaArgs, Query } from "../../types/anilist/anilist";
 import LoadingCard from "../LoadingCard.scss/LoadingCard";
 //@ts-ignore
 import MediaCard from "../MediaCard/MediaCard";
@@ -12,6 +12,8 @@ interface IProps {
   handleSearch: (page?: number) => void;
   updateSearch: (newSearch: string) => void;
   updatePageNumber: (page: number) => void;
+  updateYear: (year: number) => void;
+  updateSeason: (season: string) => void;
   searchOptions: PageMediaArgs;
   resetSearch: () => void;
 }
@@ -22,6 +24,8 @@ const SearchMediaSection: React.FC<IProps> = ({
   loading,
   handleSearch,
   updateSearch,
+  updateSeason,
+  updateYear,
   updatePageNumber,
   resetSearch,
   searchOptions,
@@ -68,6 +72,46 @@ const SearchMediaSection: React.FC<IProps> = ({
         </div>
       </div>
 
+      <select
+        className="search__select"
+        name="seasonPick"
+        value={searchOptions.season || ""}
+        onChange={(event) => {
+          console.log(event.target.value);
+          updateSeason(event.target.value);
+        }}
+      >
+        <option
+          // selected={searchOptions.season === ("ANY" as MediaSeason)}
+          value={"ANY"}
+        >
+          Any
+        </option>
+        {Object.entries(MediaSeason).map((entry) => (
+          <option
+            // selected={searchOptions.season === entry[1]}
+            value={entry[1]}
+          >
+            {entry[0]}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="search__select"
+        value={searchOptions.seasonYear || 2021}
+        name="yearPick"
+        onChange={(event) => updateYear(parseInt(event.target.value))}
+      >
+        {[
+          -9999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010,
+          2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
+          2022,
+        ].map((year) => (
+          <option value={year}>{year === -9999 ? "Any" : year}</option>
+        ))}
+      </select>
+
       <h1>
         {data?.Page?.pageInfo?.total === 0 ? "No results found." : sectionTitle}
       </h1>
@@ -90,7 +134,6 @@ const SearchMediaSection: React.FC<IProps> = ({
             disabled={!hasPrev}
             onClick={() => {
               updatePageNumber(currentPage - 1);
-              handleSearch(currentPage - 1);
             }}
           >
             Previous page
@@ -100,10 +143,6 @@ const SearchMediaSection: React.FC<IProps> = ({
           <button
             className="search__button search__button--pagination"
             disabled={true}
-            onClick={() => {
-              updatePageNumber(currentPage + 1);
-              handleSearch(currentPage + 1);
-            }}
           >
             {data?.Page?.pageInfo?.currentPage}
           </button>
@@ -112,7 +151,6 @@ const SearchMediaSection: React.FC<IProps> = ({
             disabled={!hasNext}
             onClick={() => {
               updatePageNumber(currentPage + 1);
-              handleSearch(currentPage + 1);
             }}
           >
             Next page

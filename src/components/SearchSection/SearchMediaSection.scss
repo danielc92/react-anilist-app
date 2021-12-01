@@ -33,13 +33,23 @@
     }
   }
 
-  &__input {
-    height: 40px;
-    width: 360px;
+  @mixin form-element {
     box-sizing: border-box;
+    border: 2px solid #f3f3f3;
+    border-radius: 4px;
+    height: 40px;
     font-size: 16px;
     margin-right: 8px;
-    border: 2px solid #f3f3f3;
+    color: rgb(102, 102, 102);
+  }
+
+  &__input {
+    @include form-element;
+    width: 360px;
     padding-left: 8px;
+  }
+  &__select {
+    @include form-element;
+    padding: 0 16px 0 8px;
   }
 }

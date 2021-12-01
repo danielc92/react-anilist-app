@@ -9,9 +9,11 @@ import {
   Query,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
+import { useLocation as useLocation2 } from "react-router";
 import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
+import { createNoSubstitutionTemplateLiteral } from "typescript";
 
 const MEDIA_FRAGMENT = `
         id
@@ -51,7 +53,7 @@ const GET_PAGE_MEDIA = gql`
   }
 `;
 const GET_PAGE_WITH_SEARCH_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $status: MediaStatus, $search: String, $page: Int) {
+  query getPageMedia($sort: [MediaSort], $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
     Page(perPage: 10, page: $page) {
       pageInfo {
         total
@@ -60,7 +62,7 @@ const GET_PAGE_WITH_SEARCH_MEDIA = gql`
         lastPage
         hasNextPage
       }
-      media(isAdult: false, type: ANIME, status: $status, sort: $sort, search: $search) {
+      media(isAdult: false, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
         ${MEDIA_FRAGMENT}
       }
     }
@@ -71,31 +73,50 @@ interface PageMediaArgsExtended extends PageMediaArgs {
   page?: number;
 }
 
+const seasons = Object.entries(MediaSeason);
+const defaultYear = 2021;
+
 const HomePage: React.FC = () => {
+  const buildOptionsFromQuery = (url: string) => {
+    const parsed = qs.parse(url.replace("?", ""));
+
+    const { search, page, season, seasonYear } = parsed;
+
+    const obj: PageMediaArgsExtended = {};
+
+    if (seasonYear) {
+      obj.seasonYear = parseInt(seasonYear as string) || defaultYear;
+    }
+
+    if (seasons.some((s) => s[1] === season)) {
+      obj.season = season as MediaSeason;
+    }
+    if (search) {
+      obj.search = search as string;
+    }
+
+    if (page) {
+      obj.page = parseInt(page as string) || 1;
+    }
+
+    return obj;
+  };
   const { push } = useHistory();
-  const { search: locationSearch, state } = useLocation();
+  const { search: locationSearch } = useLocation();
+  const { search: locationSearch2 } = useLocation2();
 
-  const parsedSearch = qs.parse(locationSearch.replace("?", ""));
-
-  const [searchOptions, setSearchOptions] = useState<PageMediaArgsExtended>({
-    sort: [MediaSort.PopularityDesc],
-    page: 1,
-    ...parsedSearch,
-  });
+  const initialState = buildOptionsFromQuery(locationSearch);
+  const [searchOptions, setSearchOptions] =
+    useState<PageMediaArgsExtended>(initialState);
 
   useEffect(() => {
-    const s: PageMediaArgsExtended = {};
-    if (searchOptions.search) {
-      s.search = searchOptions.search;
-    }
-    if (searchOptions.page) {
-      s.page = searchOptions.page;
-    }
-    if (searchOptions.sort) {
-      s.sort = searchOptions.sort;
-    }
+    console.log(locationSearch, locationSearch2);
 
-    getSearchResults({ variables: s })
+    const currentOptions = buildOptionsFromQuery(
+      locationSearch.replace("?", "")
+    );
+
+    getSearchResults({ variables: currentOptions })
       .then((s) => console.log("location searched.."))
       .catch((e) => console.log(e));
   }, [locationSearch]);
@@ -137,18 +158,10 @@ const HomePage: React.FC = () => {
   };
 
   const handleSearch = (page?: number) => {
-    const searchOptsWithPage = page
-      ? { ...searchOptions, page }
-      : { ...searchOptions, page: 1 };
-    console.log("Handle search");
-    getSearchResults({ variables: searchOptsWithPage })
-      .then((s) => console.log("s"))
-      .catch((e) => console.log(e));
+    const queryString = qs.stringify(searchOptions as ParsedUrlQueryInput);
 
-    const queryString =
-      "?" + qs.stringify(searchOptsWithPage as ParsedUrlQueryInput);
-
-    push(queryString.length ? `/${queryString}` : "/");
+    console.log(queryString, "QUERYSTRING");
+    push(queryString.length ? `/?${queryString}` : "/");
   };
 
   const updateSearch = (newSearch: string) => {
@@ -158,13 +171,26 @@ const HomePage: React.FC = () => {
     };
     setSearchOptions(newSearchOptions);
   };
+
+  const updateSeason = (season: string) => {
+    setSearchOptions({ ...searchOptions, season: season as MediaSeason });
+  };
+  const updateYear = (seasonYear: number) => {
+    setSearchOptions({ ...searchOptions, seasonYear });
+  };
   const updatePageNumber = (page: number) => {
-    setSearchOptions({ ...searchOptions, page });
+    const obj = buildOptionsFromQuery(locationSearch);
+    obj.page = page;
+    const queryString = qs.stringify(obj as ParsedUrlQueryInput);
+    console.log(obj, queryString, page, "Updating page ");
+    push(queryString.length ? `/?${queryString}` : "/");
   };
 
   return (
     <div>
       <SearchMediaSection
+        updateYear={updateYear}
+        updateSeason={updateSeason}
         searchOptions={searchOptions}
         updateSearch={updateSearch}
         resetSearch={resetSearch}

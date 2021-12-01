@@ -1,0 +1,5 @@
+.medialist {
+  display: grid;
+  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}

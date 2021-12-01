@@ -1,0 +1,21 @@
+.media-card {
+  &__loading {
+    animation: 1.5s shine linear infinite;
+    overflow: hidden;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+    position: relative;
+
+    background: #eee;
+    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+    background-size: 200% 100%;
+    height: 280px;
+    box-sizing: border-box;
+  }
+}
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
+}

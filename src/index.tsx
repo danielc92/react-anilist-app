@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
+import HomePage from "./pages/HomePage/HomePage";
 import reportWebVitals from "./reportWebVitals";
 import { InMemoryCache, ApolloClient, ApolloProvider } from "@apollo/client";
 import { BASE_URL } from "./settings/api";
-
+import { HashRouter, BrowserRouter, Route, Switch } from "react-router-dom";
 const client = new ApolloClient({
   uri: BASE_URL,
   cache: new InMemoryCache(),
@@ -14,7 +14,13 @@ const client = new ApolloClient({
 ReactDOM.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
-      <App />
+      <HashRouter>
+        <Switch>
+          <Route path="/" exact>
+            <HomePage />
+          </Route>
+        </Switch>
+      </HashRouter>
     </ApolloProvider>
   </React.StrictMode>,
   document.getElementById("root")

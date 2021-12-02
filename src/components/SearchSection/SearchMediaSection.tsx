@@ -79,7 +79,7 @@ const SearchMediaSection: React.FC<IProps> = ({
             Search
           </button>
           <button
-            className="search__button"
+            className="search__button search__button--secondary"
             onClick={() => resetSearch()}
             type="button"
           >

@@ -41,6 +41,7 @@
     font-size: 36px;
     margin: 0 0 16px 0;
   }
+
   &__button {
     font-weight: 200;
     height: 40px;
@@ -53,8 +54,10 @@
     cursor: pointer;
     padding: 0 16px;
     margin-right: 8px;
-    // text-transform: uppercase;
 
+    &--secondary {
+      background-color: rgb(71, 71, 71);
+    }
     &:disabled {
       cursor: not-allowed;
       background-color: rgb(218, 218, 218);

@@ -1,5 +1,12 @@
 import React from "react";
-import { MediaSeason, PageMediaArgs, Query } from "../../types/anilist/anilist";
+import { ANILIST_GENRES } from "../../settings/data";
+import {
+  MediaSeason,
+  MediaSort,
+  MediaStatus,
+  PageMediaArgs,
+  Query,
+} from "../../types/anilist/anilist";
 import LoadingCard from "../LoadingCard.scss/LoadingCard";
 //@ts-ignore
 import MediaCard from "../MediaCard/MediaCard";
@@ -14,8 +21,11 @@ interface IProps {
   updatePageNumber: (page: number) => void;
   updateYear: (year: number) => void;
   updateSeason: (season: string) => void;
+  updateStatus: (status: string) => void;
+  updateSort: (sort: string) => void;
   searchOptions: PageMediaArgs;
   resetSearch: () => void;
+  updateGenre: (genre: string) => void;
 }
 
 const SearchMediaSection: React.FC<IProps> = ({
@@ -26,6 +36,9 @@ const SearchMediaSection: React.FC<IProps> = ({
   updateSearch,
   updateSeason,
   updateYear,
+  updateGenre,
+  updateSort,
+  updateStatus,
   updatePageNumber,
   resetSearch,
   searchOptions,
@@ -48,6 +61,7 @@ const SearchMediaSection: React.FC<IProps> = ({
   return (
     <section className="section">
       <h1 className="search__title">Daniel's Anime App</h1>
+
       <div className="search">
         <div className="search__search">
           <input
@@ -74,48 +88,102 @@ const SearchMediaSection: React.FC<IProps> = ({
         </div>
       </div>
 
-      <select
-        className="search__select"
-        name="seasonPick"
-        value={searchOptions.season || ""}
-        onChange={(event) => {
-          console.log(event.target.value);
-          updateSeason(event.target.value);
-        }}
-      >
-        <option
-          // selected={searchOptions.season === ("ANY" as MediaSeason)}
-          value={"ANY"}
-        >
-          Any
-        </option>
-        {Object.entries(MediaSeason).map((entry) => (
-          <option
-            // selected={searchOptions.season === entry[1]}
-            value={entry[1]}
+      <div className="search__select-group">
+        <div className="search__select-wrap">
+          <label>Season</label>
+          <select
+            className="search__select"
+            name="seasonPick"
+            value={searchOptions.season || ""}
+            onChange={(event) => {
+              updateSeason(event.target.value);
+            }}
           >
-            {entry[0]}
-          </option>
-        ))}
-      </select>
+            <option
+              // selected={searchOptions.season === ("ANY" as MediaSeason)}
+              value={"ANY"}
+            >
+              Any
+            </option>
+            {Object.entries(MediaSeason).map((entry) => (
+              <option
+                // selected={searchOptions.season === entry[1]}
+                value={entry[1]}
+              >
+                {entry[0]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="search__select-wrap">
+          <label>Year</label>
+          <select
+            className="search__select"
+            value={searchOptions.seasonYear || 0}
+            name="yearPick"
+            onChange={(event) => updateYear(parseInt(event.target.value))}
+          >
+            {[
+              0, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010,
+              2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
+              2022,
+            ].map((year) => (
+              <option value={year}>{year === 0 ? "Any" : year}</option>
+            ))}
+          </select>
+        </div>
 
-      <select
-        className="search__select"
-        value={searchOptions.seasonYear || 2021}
-        name="yearPick"
-        onChange={(event) => updateYear(parseInt(event.target.value))}
-      >
-        {[
-          -9999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010,
-          2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
-          2022,
-        ].map((year) => (
-          <option value={year}>{year === -9999 ? "Any" : year}</option>
-        ))}
-      </select>
+        <div className="search__select-wrap">
+          <label>Genre</label>
+          <select
+            className="search__select"
+            value={searchOptions.genre || ""}
+            name="genrePick"
+            onChange={(event) => updateGenre(event.target.value)}
+          >
+            {ANILIST_GENRES.map((g) => (
+              <option value={g}>{g}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="search__select-wrap">
+          <label>Status</label>
+          <select
+            className="search__select"
+            value={searchOptions.status || ""}
+            name="statusPick"
+            onChange={(event) => updateStatus(event.target.value)}
+          >
+            <option value={"ANY"}>Any</option>
+            {Object.entries(MediaStatus).map((g) => (
+              <option value={g[1]}>{g[0]}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="search__select-wrap">
+          <label>Sort by</label>
+          <select
+            className="search__select"
+            //@ts-ignore
+            value={searchOptions.sort || "POPULARITY_DESC"}
+            name="sortPick"
+            onChange={(event) => updateSort(event.target.value)}
+          >
+            {Object.entries(MediaSort).map((g) => (
+              <option value={g[1]}>
+                {g[1].replaceAll("_", " ").toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <h1>
-        {data?.Page?.pageInfo?.total === 0 ? "No results found." : sectionTitle}
+        {data?.Page?.pageInfo?.total === 0
+          ? "No results found."
+          : `${sectionTitle} (${data?.Page?.pageInfo?.total || "..."})`}
       </h1>
 
       <div className="medialist">

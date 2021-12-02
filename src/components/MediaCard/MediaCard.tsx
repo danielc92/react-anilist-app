@@ -17,14 +17,18 @@ const MediaCard: React.FC<IProps> = ({ media }) => {
   return (
     <div>
       <a className="media-card__img-wrap" href={media.siteUrl || "#"}>
-        <img src={media.coverImage?.extraLarge || "#"} alt="anime cover" />
-        {media.meanScore && (
+        <img
+          src={media.coverImage?.large || "#"}
+          alt={media.title?.romaji + " image"}
+        />
+        {media.averageScore && (
           <p className="media-card__score">
-            <span>{media.meanScore}%</span>
+            <span>{media.averageScore}%</span>
           </p>
         )}
       </a>
-      <h2 className="media-card__heading">{media.title?.english}</h2>
+
+      <h2 className="media-card__heading">{media.title?.romaji}</h2>
 
       {/* <div>{media.description}</div> */}
       <div className="media-card__tags">

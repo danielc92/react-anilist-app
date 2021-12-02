@@ -1,0 +1,18 @@
+export const ANILIST_GENRES = [
+  "Any",
+  "Action",
+  "Drama",
+  "Fantasy",
+  "Mystery",
+  "Comedy",
+  "Horror",
+  "Supernatural",
+  "Adventure",
+  "Psychological",
+  "Thriller",
+  "Slice of Life",
+  "Sci-Fi",
+  "Romance",
+  "Sports",
+  "Ecchi",
+];

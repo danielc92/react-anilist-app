@@ -7,13 +7,18 @@ import {
   MediaSeason,
   PageMediaArgs,
   Query,
+  MediaStatus,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
 import { useLocation as useLocation2 } from "react-router";
 import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
-import { createNoSubstitutionTemplateLiteral } from "typescript";
+import {
+  createBuilderStatusReporter,
+  createNoSubstitutionTemplateLiteral,
+} from "typescript";
+import { ANILIST_GENRES } from "../../settings/data";
 
 const MEDIA_FRAGMENT = `
         id
@@ -25,6 +30,7 @@ const MEDIA_FRAGMENT = `
         }
         description
         coverImage {
+          medium
           large
           extraLarge
           color
@@ -41,11 +47,12 @@ const MEDIA_FRAGMENT = `
           category
           description
         }
+        averageScore
         meanScore`;
 
 const GET_PAGE_MEDIA = gql`
   query getPageMedia($sort: [MediaSort]) {
-    Page(perPage: 10) {
+    Page(perPage: 5) {
       media(isAdult: false, type: ANIME, sort: $sort) {
         ${MEDIA_FRAGMENT}
       }
@@ -53,7 +60,7 @@ const GET_PAGE_MEDIA = gql`
   }
 `;
 const GET_PAGE_WITH_SEARCH_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
+  query getPageMedia($sort: [MediaSort], $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
     Page(perPage: 10, page: $page) {
       pageInfo {
         total
@@ -62,7 +69,7 @@ const GET_PAGE_WITH_SEARCH_MEDIA = gql`
         lastPage
         hasNextPage
       }
-      media(isAdult: false, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
+      media(isAdult: false, genre: $genre, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
         ${MEDIA_FRAGMENT}
       }
     }
@@ -74,14 +81,25 @@ interface PageMediaArgsExtended extends PageMediaArgs {
 }
 
 const seasons = Object.entries(MediaSeason);
+const statuses = Object.entries(MediaStatus);
+const sorts = Object.entries(MediaSort);
 
 const HomePage: React.FC = () => {
   const buildOptionsFromQuery = (url: string) => {
     const parsed = qs.parse(url.replace("?", ""));
 
-    const { search, page, season, seasonYear } = parsed;
+    const { search, page, season, seasonYear, genre, status, sort } = parsed;
 
     const obj: PageMediaArgsExtended = {};
+
+    if (genre) {
+      const transformedGenres = ANILIST_GENRES.filter((x) => x !== "Any").map(
+        (x) => x.toLocaleLowerCase()
+      );
+      if (transformedGenres.includes((genre as string).toLowerCase())) {
+        obj.genre = genre as string;
+      }
+    }
 
     const parsedYear = parseInt(seasonYear as string);
     if (typeof parsedYear === "number" && parsedYear > 0) {
@@ -95,10 +113,20 @@ const HomePage: React.FC = () => {
       obj.search = search as string;
     }
 
+    if (statuses.some((s) => s[1] === status)) {
+      obj.status = status as MediaStatus;
+    }
+
     if (page) {
       obj.page = parseInt(page as string) || 1;
     }
-    console.log(obj, "lol");
+
+    if (sorts.some((s) => s[1] === sort)) {
+      obj.sort = [sort as MediaSort];
+    } else {
+      obj.sort = [MediaSort.PopularityDesc];
+    }
+
     return obj;
   };
   const { push } = useHistory();
@@ -110,15 +138,13 @@ const HomePage: React.FC = () => {
     useState<PageMediaArgsExtended>(initialState);
 
   useEffect(() => {
-    console.log(locationSearch, locationSearch2);
-
     const currentOptions = buildOptionsFromQuery(
       locationSearch.replace("?", "")
     );
 
     getSearchResults({ variables: currentOptions })
-      .then((s) => console.log("location searched.."))
-      .catch((e) => console.log(e));
+      .then((s) => s)
+      .catch((e) => console.error(e));
   }, [locationSearch]);
 
   const [
@@ -154,11 +180,15 @@ const HomePage: React.FC = () => {
   });
 
   const resetSearch = () => {
-    push("/");
+    setSearchOptions({ sort: [MediaSort.PopularityDesc] });
+    push("/?sort=POPULARITY_DESC");
   };
 
   const handleSearch = (page?: number) => {
-    const queryString = qs.stringify(searchOptions as ParsedUrlQueryInput);
+    const queryString = qs.stringify({
+      ...searchOptions,
+      page: 1,
+    } as ParsedUrlQueryInput);
 
     console.log(queryString, "QUERYSTRING");
     push(queryString.length ? `/?${queryString}` : "/");
@@ -175,6 +205,14 @@ const HomePage: React.FC = () => {
   const updateSeason = (season: string) => {
     setSearchOptions({ ...searchOptions, season: season as MediaSeason });
   };
+  const updateStatus = (status: string) => {
+    setSearchOptions({ ...searchOptions, status: status as MediaStatus });
+  };
+  const updateSort = (sort: string) => {
+    setSearchOptions({ ...searchOptions, sort: [sort as MediaSort] });
+  };
+  const updateGenre = (genre: string) =>
+    setSearchOptions({ ...searchOptions, genre });
   const updateYear = (seasonYear: number) => {
     setSearchOptions({ ...searchOptions, seasonYear });
   };
@@ -182,18 +220,20 @@ const HomePage: React.FC = () => {
     const obj = buildOptionsFromQuery(locationSearch);
     obj.page = page;
     const queryString = qs.stringify(obj as ParsedUrlQueryInput);
-    console.log(obj, queryString, page, "Updating page ");
     push(queryString.length ? `/?${queryString}` : "/");
   };
 
   return (
     <div>
       <SearchMediaSection
+        updateStatus={updateStatus}
+        updateSort={updateSort}
         updateYear={updateYear}
         updateSeason={updateSeason}
         searchOptions={searchOptions}
         updateSearch={updateSearch}
         resetSearch={resetSearch}
+        updateGenre={updateGenre}
         handleSearch={handleSearch}
         updatePageNumber={updatePageNumber}
         loading={loadingSearchResults}

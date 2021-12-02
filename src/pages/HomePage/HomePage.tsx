@@ -258,6 +258,12 @@ const HomePage: React.FC = () => {
         data={dataFav}
         sectionTitle="Most Favourited ⭐"
       ></MediaListSection>
+
+      <section className="footer">
+        <p>
+          Powered by the <strong>anilist API</strong>
+        </p>
+      </section>
     </div>
   );
 };

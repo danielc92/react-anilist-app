@@ -1,3 +1,7 @@
+# Anime React App
+
+A lightweight anime website built with typescript, react and the anilist graphql API.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

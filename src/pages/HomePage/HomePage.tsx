@@ -141,7 +141,6 @@ const HomePage: React.FC = () => {
       .then((s) => s)
       .catch((e) => console.error(e));
   }, [locationSearch]);
-
   const [
     getSearchResults,
     { loading: loadingSearchResults, data: dataSearchResults },
@@ -174,11 +173,6 @@ const HomePage: React.FC = () => {
     },
   });
 
-  const resetSearch = () => {
-    setSearchOptions({ sort: [MediaSort.PopularityDesc] });
-    push("/?sort=POPULARITY_DESC");
-  };
-
   const handleSearch = (page?: number) => {
     const queryString = qs.stringify({
       ...searchOptions,
@@ -187,6 +181,11 @@ const HomePage: React.FC = () => {
 
     console.log(queryString, "QUERYSTRING");
     push(queryString.length ? `/?${queryString}` : "/");
+  };
+
+  const resetSearch = () => {
+    setSearchOptions({ sort: [MediaSort.PopularityDesc] });
+    push("/?sort=POPULARITY_DESC&page=1");
   };
 
   const updateSearch = (newSearch: string) => {

@@ -107,6 +107,7 @@ const SearchMediaSection: React.FC<IProps> = ({
             </option>
             {Object.entries(MediaSeason).map((entry) => (
               <option
+                key={entry[1]}
                 // selected={searchOptions.season === entry[1]}
                 value={entry[1]}
               >
@@ -128,7 +129,9 @@ const SearchMediaSection: React.FC<IProps> = ({
               2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
               2022,
             ].map((year) => (
-              <option value={year}>{year === 0 ? "Any" : year}</option>
+              <option key={year} value={year}>
+                {year === 0 ? "Any" : year}
+              </option>
             ))}
           </select>
         </div>
@@ -142,7 +145,9 @@ const SearchMediaSection: React.FC<IProps> = ({
             onChange={(event) => updateGenre(event.target.value)}
           >
             {ANILIST_GENRES.map((g) => (
-              <option value={g}>{g}</option>
+              <option key={g} value={g}>
+                {g}
+              </option>
             ))}
           </select>
         </div>
@@ -157,7 +162,9 @@ const SearchMediaSection: React.FC<IProps> = ({
           >
             <option value={"ANY"}>Any</option>
             {Object.entries(MediaStatus).map((g) => (
-              <option value={g[1]}>{g[0]}</option>
+              <option key={g[1]} value={g[1]}>
+                {g[0]}
+              </option>
             ))}
           </select>
         </div>
@@ -172,7 +179,7 @@ const SearchMediaSection: React.FC<IProps> = ({
             onChange={(event) => updateSort(event.target.value)}
           >
             {Object.entries(MediaSort).map((g) => (
-              <option value={g[1]}>
+              <option key={g[1]} value={g[1]}>
                 {g[1].replaceAll("_", " ").toLowerCase()}
               </option>
             ))}
@@ -188,12 +195,15 @@ const SearchMediaSection: React.FC<IProps> = ({
 
       <div className="medialist">
         {loading
-          ? new Array(10).fill(null).map((item) => <LoadingCard />)
+          ? new Array(10)
+              .fill(null)
+              .map((_, index) => <LoadingCard key={index.toString()} />)
           : data?.Page?.media
           ? data.Page.media.map((media) => {
               if (media) {
-                return <MediaCard media={media} />;
+                return <MediaCard key={media.id} media={media} />;
               }
+              return null;
             })
           : null}
       </div>

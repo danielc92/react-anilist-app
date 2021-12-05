@@ -19,12 +19,15 @@ const MediaListSection: React.FC<IProps> = ({
 
       <div className="medialist">
         {loading
-          ? new Array(10).fill(null).map((item) => <LoadingCard />)
+          ? new Array(10)
+              .fill(null)
+              .map((_, i) => <LoadingCard key={i.toString()} />)
           : data?.Page?.media
           ? data.Page.media.map((m) => {
               if (m) {
-                return <MediaCard media={m} />;
+                return <MediaCard media={m} key={m.id.toString()} />;
               }
+              return null;
             })
           : null}
       </div>

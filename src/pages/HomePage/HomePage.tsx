@@ -10,14 +10,10 @@ import {
   MediaStatus,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
-import { useLocation as useLocation2 } from "react-router";
 import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
-import {
-  createBuilderStatusReporter,
-  createNoSubstitutionTemplateLiteral,
-} from "typescript";
+
 import { ANILIST_GENRES } from "../../settings/data";
 
 const MEDIA_FRAGMENT = `
@@ -131,7 +127,6 @@ const HomePage: React.FC = () => {
   };
   const { push } = useHistory();
   const { search: locationSearch } = useLocation();
-  const { search: locationSearch2 } = useLocation2();
 
   const initialState = buildOptionsFromQuery(locationSearch);
   const [searchOptions, setSearchOptions] =

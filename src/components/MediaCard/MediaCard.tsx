@@ -33,12 +33,14 @@ const MediaCard: React.FC<IProps> = ({ media }) => {
       {/* <div>{media.description}</div> */}
       <div className="media-card__tags">
         {media.genres?.map((tag, index) => {
-          if (index < 2)
+          if (index < 2) {
             return (
               <p className="media-card__tag" style={{ backgroundColor, color }}>
                 {tag}
               </p>
             );
+          }
+          return null;
         })}
       </div>
     </div>

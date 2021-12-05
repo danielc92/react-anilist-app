@@ -1,7 +1,5 @@
 import React from "react";
 import { Query } from "../../types/anilist/anilist";
-//@ts-ignore
-import contrast from "contrast";
 import "./MediaListSection.scss";
 import MediaCard from "../MediaCard/MediaCard";
 import LoadingCard from "../LoadingCard.scss/LoadingCard";

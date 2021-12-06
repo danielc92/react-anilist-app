@@ -5,7 +5,7 @@ import HomePage from "./pages/HomePage/HomePage";
 import reportWebVitals from "./reportWebVitals";
 import { InMemoryCache, ApolloClient, ApolloProvider } from "@apollo/client";
 import { BASE_URL } from "./settings/api";
-import { HashRouter, BrowserRouter, Route, Switch } from "react-router-dom";
+import { HashRouter, Route, Switch } from "react-router-dom";
 const client = new ApolloClient({
   uri: BASE_URL,
   cache: new InMemoryCache(),

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./HomePage.scss";
-import { gql, useQuery, useLazyQuery } from "@apollo/client";
+import { gql, useQuery, useLazyQuery, fromPromise } from "@apollo/client";
 import qs, { ParsedUrlQueryInput } from "querystring";
 import {
   MediaSort,
@@ -8,6 +8,7 @@ import {
   PageMediaArgs,
   Query,
   MediaStatus,
+  MediaFormat,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
 import { useHistory } from "react-router";
@@ -18,6 +19,11 @@ import { ANILIST_GENRES } from "../../settings/data";
 
 const MEDIA_FRAGMENT = `
         id
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
         status
         title {
           english
@@ -56,7 +62,7 @@ const GET_PAGE_MEDIA = gql`
   }
 `;
 const GET_PAGE_WITH_SEARCH_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
+  query getPageMedia($sort: [MediaSort], $format: MediaFormat, $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
     Page(perPage: 10, page: $page) {
       pageInfo {
         total
@@ -65,7 +71,7 @@ const GET_PAGE_WITH_SEARCH_MEDIA = gql`
         lastPage
         hasNextPage
       }
-      media(isAdult: false, genre: $genre, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
+      media(format: $format, isAdult: false, genre: $genre, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
         ${MEDIA_FRAGMENT}
       }
     }
@@ -79,12 +85,14 @@ interface PageMediaArgsExtended extends PageMediaArgs {
 const seasons = Object.entries(MediaSeason);
 const statuses = Object.entries(MediaStatus);
 const sorts = Object.entries(MediaSort);
+const formats = Object.entries(MediaFormat);
 
 const HomePage: React.FC = () => {
   const buildOptionsFromQuery = (url: string) => {
     const parsed = qs.parse(url.replace("?", ""));
 
-    const { search, page, season, seasonYear, genre, status, sort } = parsed;
+    const { search, page, season, seasonYear, genre, status, sort, format } =
+      parsed;
 
     const obj: PageMediaArgsExtended = {};
 
@@ -117,6 +125,10 @@ const HomePage: React.FC = () => {
       obj.page = parseInt(page as string) || 1;
     }
 
+    if (formats.some((s) => s[1] === format)) {
+      obj.format = format as MediaFormat;
+    }
+
     if (sorts.some((s) => s[1] === sort)) {
       obj.sort = [sort as MediaSort];
     } else {
@@ -133,12 +145,13 @@ const HomePage: React.FC = () => {
     useState<PageMediaArgsExtended>(initialState);
 
   useEffect(() => {
+    console.log(locationSearch, "TRIGGERED SEARCH");
     const currentOptions = buildOptionsFromQuery(
       locationSearch.replace("?", "")
     );
 
     getSearchResults({ variables: currentOptions })
-      .then((s) => s)
+      .then((s) => console.log("finished fetching search results"))
       .catch((e) => console.error(e));
   }, [locationSearch]);
   const [
@@ -210,6 +223,9 @@ const HomePage: React.FC = () => {
   const updateYear = (seasonYear: number) => {
     setSearchOptions({ ...searchOptions, seasonYear });
   };
+  const updateFormat = (format: string) => {
+    setSearchOptions({ ...searchOptions, format: format as MediaFormat });
+  };
   const updatePageNumber = (page: number) => {
     const obj = buildOptionsFromQuery(locationSearch);
     obj.page = page;
@@ -224,6 +240,7 @@ const HomePage: React.FC = () => {
         updateSort={updateSort}
         updateYear={updateYear}
         updateSeason={updateSeason}
+        updateFormat={updateFormat}
         searchOptions={searchOptions}
         updateSearch={updateSearch}
         resetSearch={resetSearch}

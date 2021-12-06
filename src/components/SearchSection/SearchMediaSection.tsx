@@ -1,6 +1,7 @@
 import React from "react";
 import { ANILIST_GENRES } from "../../settings/data";
 import {
+  MediaFormat,
   MediaSeason,
   MediaSort,
   MediaStatus,
@@ -21,6 +22,7 @@ interface IProps {
   updatePageNumber: (page: number) => void;
   updateYear: (year: number) => void;
   updateSeason: (season: string) => void;
+  updateFormat: (format: string) => void;
   updateStatus: (status: string) => void;
   updateSort: (sort: string) => void;
   searchOptions: PageMediaArgs;
@@ -41,6 +43,7 @@ const SearchMediaSection: React.FC<IProps> = ({
   updateStatus,
   updatePageNumber,
   resetSearch,
+  updateFormat,
   searchOptions,
 }) => {
   const hasNext =
@@ -179,6 +182,24 @@ const SearchMediaSection: React.FC<IProps> = ({
             onChange={(event) => updateSort(event.target.value)}
           >
             {Object.entries(MediaSort).map((g) => (
+              <option key={g[1]} value={g[1]}>
+                {g[1].replaceAll("_", " ").toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="search__select-wrap">
+          <label>Format</label>
+          <select
+            className="search__select"
+            //@ts-ignore
+            value={searchOptions.format || ""}
+            name="sortFormat"
+            onChange={(event) => updateFormat(event.target.value)}
+          >
+            <option value={"ANY"}>Any</option>
+            {Object.entries(MediaFormat).map((g) => (
               <option key={g[1]} value={g[1]}>
                 {g[1].replaceAll("_", " ").toLowerCase()}
               </option>

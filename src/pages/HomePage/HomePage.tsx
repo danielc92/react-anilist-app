@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./HomePage.scss";
-import { gql, useQuery, useLazyQuery, fromPromise } from "@apollo/client";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import qs, { ParsedUrlQueryInput } from "querystring";
 import {
   MediaSort,
@@ -14,69 +13,9 @@ import { useLocation } from "react-router-dom";
 import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
-
 import { ANILIST_GENRES } from "../../settings/data";
-
-const MEDIA_FRAGMENT = `
-        id
-        nextAiringEpisode {
-          airingAt
-          timeUntilAiring
-          episode
-        }
-        status
-        title {
-          english
-          romaji
-          native
-        }
-        description
-        coverImage {
-          medium
-          large
-          extraLarge
-          color
-        }
-        siteUrl
-        startDate {
-          year
-          month
-          day
-        }
-        genres
-        tags {
-          name
-          category
-          description
-        }
-        averageScore
-        meanScore`;
-
-const GET_PAGE_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort]) {
-    Page(perPage: 5) {
-      media(isAdult: false, type: ANIME, sort: $sort) {
-        ${MEDIA_FRAGMENT}
-      }
-    }
-  }
-`;
-const GET_PAGE_WITH_SEARCH_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $format: MediaFormat, $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
-    Page(perPage: 10, page: $page) {
-      pageInfo {
-        total
-        perPage
-        currentPage
-        lastPage
-        hasNextPage
-      }
-      media(format: $format, isAdult: false, genre: $genre, season: $season, seasonYear: $seasonYear, type: ANIME, status: $status, sort: $sort, search: $search) {
-        ${MEDIA_FRAGMENT}
-      }
-    }
-  }
-`;
+import "./HomePage.scss";
+import { GET_PAGE_MEDIA, GET_PAGE_WITH_SEARCH_MEDIA } from "../../queries";
 
 interface PageMediaArgsExtended extends PageMediaArgs {
   page?: number;
@@ -192,7 +131,6 @@ const HomePage: React.FC = () => {
       page: 1,
     } as ParsedUrlQueryInput);
 
-    console.log(queryString, "QUERYSTRING");
     push(queryString.length ? `/?${queryString}` : "/");
   };
 

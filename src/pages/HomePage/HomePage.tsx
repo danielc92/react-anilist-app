@@ -8,6 +8,7 @@ import {
   Query,
   MediaStatus,
   MediaFormat,
+  MediaType,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
 import { useHistory } from "react-router";
@@ -19,21 +20,35 @@ import { GET_PAGE_MEDIA, GET_PAGE_WITH_SEARCH_MEDIA } from "../../queries";
 
 interface PageMediaArgsExtended extends PageMediaArgs {
   page?: number;
+  perPage?: number;
 }
 
+const DEFAULT_PER_PAGE = 12;
 const seasons = Object.entries(MediaSeason);
 const statuses = Object.entries(MediaStatus);
 const sorts = Object.entries(MediaSort);
 const formats = Object.entries(MediaFormat);
 
 const HomePage: React.FC = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentSeason =
+    now.getMonth() <= 2
+      ? MediaSeason.Winter
+      : now.getMonth() <= 5
+      ? MediaSeason.Spring
+      : now.getMonth() <= 8
+      ? MediaSeason.Summer
+      : MediaSeason.Fall;
   const buildOptionsFromQuery = (url: string) => {
     const parsed = qs.parse(url.replace("?", ""));
 
     const { search, page, season, seasonYear, genre, status, sort, format } =
       parsed;
 
-    const obj: PageMediaArgsExtended = {};
+    const obj: PageMediaArgsExtended = {
+      perPage: DEFAULT_PER_PAGE,
+    };
 
     if (genre) {
       const transformedGenres = ANILIST_GENRES.filter((x) => x !== "Any").map(
@@ -99,12 +114,26 @@ const HomePage: React.FC = () => {
   ] = useLazyQuery<Query, PageMediaArgsExtended>(GET_PAGE_WITH_SEARCH_MEDIA, {
     variables: searchOptions,
   });
+  const {
+    loading: loadingCurrentSeasonResults,
+    data: dataCurrentSeasonResults,
+  } = useQuery<Query, PageMediaArgsExtended>(GET_PAGE_WITH_SEARCH_MEDIA, {
+    variables: {
+      seasonYear: currentYear,
+      season: currentSeason,
+      type: MediaType.Anime,
+      format: MediaFormat.Tv,
+      sort: [MediaSort.ScoreDesc],
+      perPage: 36,
+    },
+  });
   const { loading: loadingTrending, data: dataTrending } = useQuery<
     Query,
     PageMediaArgsExtended
   >(GET_PAGE_MEDIA, {
     variables: {
       sort: [MediaSort.TrendingDesc],
+      perPage: DEFAULT_PER_PAGE,
     },
   });
 
@@ -114,6 +143,7 @@ const HomePage: React.FC = () => {
   >(GET_PAGE_MEDIA, {
     variables: {
       sort: [MediaSort.PopularityDesc],
+      perPage: DEFAULT_PER_PAGE,
     },
   });
   const { loading: loadingFav, data: dataFav } = useQuery<
@@ -122,6 +152,7 @@ const HomePage: React.FC = () => {
   >(GET_PAGE_MEDIA, {
     variables: {
       sort: [MediaSort.FavouritesDesc],
+      perPage: DEFAULT_PER_PAGE,
     },
   });
 
@@ -136,7 +167,7 @@ const HomePage: React.FC = () => {
 
   const resetSearch = () => {
     setSearchOptions({ sort: [MediaSort.PopularityDesc] });
-    push("/?sort=POPULARITY_DESC&page=1");
+    push(`/?sort=POPULARITY_DESC&page=1&perPage=${DEFAULT_PER_PAGE}`);
   };
 
   const updateSearch = (newSearch: string) => {
@@ -190,6 +221,11 @@ const HomePage: React.FC = () => {
         sectionTitle="Search results"
       />
 
+      <MediaListSection
+        loading={loadingCurrentSeasonResults}
+        data={dataCurrentSeasonResults}
+        sectionTitle={`Most highly rated anime for ${currentSeason}, ${currentYear}`}
+      ></MediaListSection>
       <MediaListSection
         loading={loadingPopularity}
         data={dataPopularity}

@@ -36,8 +36,8 @@ export const MEDIA_FRAGMENT = `
         meanScore`;
 
 export const GET_PAGE_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort]) {
-    Page(perPage: 5) {
+  query getPageMedia($perPage: Int,$sort: [MediaSort]) {
+    Page(perPage: $perPage) {
       media(isAdult: false, type: ANIME, sort: $sort) {
         ${MEDIA_FRAGMENT}
       }
@@ -45,8 +45,8 @@ export const GET_PAGE_MEDIA = gql`
   }
 `;
 export const GET_PAGE_WITH_SEARCH_MEDIA = gql`
-  query getPageMedia($sort: [MediaSort], $format: MediaFormat, $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
-    Page(perPage: 10, page: $page) {
+  query getPageMedia($perPage: Int, $sort: [MediaSort], $format: MediaFormat, $genre: String, $status: MediaStatus, $search: String, $page: Int, $season: MediaSeason, $seasonYear: Int) {
+    Page(perPage: $perPage, page: $page) {
       pageInfo {
         total
         perPage

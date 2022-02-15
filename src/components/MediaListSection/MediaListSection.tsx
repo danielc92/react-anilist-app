@@ -4,32 +4,24 @@ import "./MediaListSection.scss";
 import MediaCard from "../MediaCard/MediaCard";
 import LoadingCard from "../LoadingCard.scss/LoadingCard";
 interface IProps {
-  data: Query | undefined;
-  loading: boolean;
+  data: Query | null;
   sectionTitle: string;
 }
-const MediaListSection: React.FC<IProps> = ({
-  sectionTitle,
-  data,
-  loading,
-}) => {
+const MediaListSection: React.FC<IProps> = ({ sectionTitle, data }) => {
   return (
     <section className="section">
       <h1>{sectionTitle}</h1>
 
       <div className="medialist">
-        {loading
+        {!data
           ? new Array(10)
               .fill(null)
-              .map((_, i) => <LoadingCard key={i.toString()} />)
-          : data?.Page?.media
-          ? data.Page.media.map((m) => {
+              .map((_, i) => <LoadingCard key={i.toString() + "_loading"} />)
+          : data.Page?.media?.map((m) => {
               if (m) {
                 return <MediaCard media={m} key={m.id.toString()} />;
               }
-              return null;
-            })
-          : null}
+            })}
       </div>
     </section>
   );

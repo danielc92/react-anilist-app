@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useQuery, useLazyQuery } from "@apollo/client";
+import "./HomePage.scss";
 import qs, { ParsedUrlQueryInput } from "querystring";
 import {
   MediaSort,
@@ -15,21 +15,34 @@ import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
 import { ANILIST_GENRES } from "../../settings/data";
-import "./HomePage.scss";
 import { GET_PAGE_MEDIA, GET_PAGE_WITH_SEARCH_MEDIA } from "../../queries";
+import { GraphQLClient } from "graphql-request";
+import {
+  BASE_URL,
+  DEFAULT_PER_PAGE,
+  SEASONAL_PER_PAGE,
+} from "../../settings/api";
+const graphQLClient = new GraphQLClient(BASE_URL, {
+  mode: "cors",
+});
 
 interface PageMediaArgsExtended extends PageMediaArgs {
   page?: number;
   perPage?: number;
 }
 
-const DEFAULT_PER_PAGE = 12;
 const seasons = Object.entries(MediaSeason);
 const statuses = Object.entries(MediaStatus);
 const sorts = Object.entries(MediaSort);
 const formats = Object.entries(MediaFormat);
 
 const HomePage: React.FC = () => {
+  const [dataFavourites, setFavouritesResults] = useState<Query | null>(null);
+  const [dataCurrent, setCurrentSeasonResults] = useState<Query | null>(null);
+  const [dataTrending, setTrendingResults] = useState<Query | null>(null);
+  const [dataPopular, setPopularResults] = useState<Query | null>(null);
+  const [dataSearch, setSearchResults] = useState<Query | null>(null);
+
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentSeason =
@@ -99,62 +112,65 @@ const HomePage: React.FC = () => {
     useState<PageMediaArgsExtended>(initialState);
 
   useEffect(() => {
-    console.log(locationSearch, "TRIGGERED SEARCH");
     const currentOptions = buildOptionsFromQuery(
       locationSearch.replace("?", "")
     );
-
-    getSearchResults({ variables: currentOptions })
-      .then((s) => console.log("finished fetching search results"))
-      .catch((e) => console.error(e));
+    // search results
+    graphQLClient
+      .request<Query>(GET_PAGE_WITH_SEARCH_MEDIA, currentOptions)
+      .then((results) => {
+        setSearchResults(results);
+      })
+      .catch((err) => console.log("Failed fetching (favourites)."));
   }, [locationSearch]);
-  const [
-    getSearchResults,
-    { loading: loadingSearchResults, data: dataSearchResults },
-  ] = useLazyQuery<Query, PageMediaArgsExtended>(GET_PAGE_WITH_SEARCH_MEDIA, {
-    variables: searchOptions,
-  });
-  const {
-    loading: loadingCurrentSeasonResults,
-    data: dataCurrentSeasonResults,
-  } = useQuery<Query, PageMediaArgsExtended>(GET_PAGE_WITH_SEARCH_MEDIA, {
-    variables: {
-      seasonYear: currentYear,
-      season: currentSeason,
-      type: MediaType.Anime,
-      format: MediaFormat.Tv,
-      sort: [MediaSort.ScoreDesc],
-      perPage: 36,
-    },
-  });
-  const { loading: loadingTrending, data: dataTrending } = useQuery<
-    Query,
-    PageMediaArgsExtended
-  >(GET_PAGE_MEDIA, {
-    variables: {
-      sort: [MediaSort.TrendingDesc],
-      perPage: DEFAULT_PER_PAGE,
-    },
-  });
 
-  const { loading: loadingPopularity, data: dataPopularity } = useQuery<
-    Query,
-    PageMediaArgsExtended
-  >(GET_PAGE_MEDIA, {
-    variables: {
-      sort: [MediaSort.PopularityDesc],
-      perPage: DEFAULT_PER_PAGE,
-    },
-  });
-  const { loading: loadingFav, data: dataFav } = useQuery<
-    Query,
-    PageMediaArgsExtended
-  >(GET_PAGE_MEDIA, {
-    variables: {
-      sort: [MediaSort.FavouritesDesc],
-      perPage: DEFAULT_PER_PAGE,
-    },
-  });
+  useEffect(() => {
+    // favourites
+    graphQLClient
+      .request<Query>(GET_PAGE_MEDIA, {
+        sort: [MediaSort.FavouritesDesc],
+        perPage: DEFAULT_PER_PAGE,
+      })
+      .then((results) => {
+        setFavouritesResults(results);
+      })
+      .catch((err) => console.log("Failed fetching (favourites)."));
+    // favourites
+    graphQLClient
+      .request<Query>(GET_PAGE_MEDIA, {
+        sort: [MediaSort.PopularityDesc],
+        perPage: DEFAULT_PER_PAGE,
+      })
+      .then((results) => {
+        setPopularResults(results);
+      })
+      .catch((err) => console.log("Failed fetching (popular)."));
+    // favourites
+    graphQLClient
+      .request<Query>(GET_PAGE_MEDIA, {
+        sort: [MediaSort.TrendingDesc],
+        perPage: DEFAULT_PER_PAGE,
+      })
+      .then((results) => {
+        setTrendingResults(results);
+      })
+      .catch((err) => console.log("Failed fetching (trending)."));
+
+    // current season
+    graphQLClient
+      .request<Query>(GET_PAGE_MEDIA, {
+        seasonYear: currentYear,
+        season: currentSeason,
+        type: MediaType.Anime,
+        format: MediaFormat.Tv,
+        sort: [MediaSort.ScoreDesc],
+        perPage: SEASONAL_PER_PAGE,
+      })
+      .then((results) => {
+        setCurrentSeasonResults(results);
+      })
+      .catch((err) => console.log("Failed fetching (current season)"));
+  }, []);
 
   const handleSearch = (page?: number) => {
     const queryString = qs.stringify({
@@ -216,31 +232,25 @@ const HomePage: React.FC = () => {
         updateGenre={updateGenre}
         handleSearch={handleSearch}
         updatePageNumber={updatePageNumber}
-        loading={loadingSearchResults}
-        data={dataSearchResults}
+        loading={false}
+        data={dataSearch}
         sectionTitle="Search results"
       />
 
       <MediaListSection
-        loading={loadingCurrentSeasonResults}
-        data={dataCurrentSeasonResults}
+        data={dataCurrent}
         sectionTitle={`Most highly rated anime for ${currentSeason}, ${currentYear}`}
       ></MediaListSection>
       <MediaListSection
-        loading={loadingPopularity}
-        data={dataPopularity}
+        data={dataPopular}
         sectionTitle="Popular Anime 🏅"
       ></MediaListSection>
-
       <MediaListSection
-        loading={loadingTrending}
         data={dataTrending}
         sectionTitle="Trending Anime 🔥"
       ></MediaListSection>
-
       <MediaListSection
-        loading={loadingFav}
-        data={dataFav}
+        data={dataFavourites}
         sectionTitle="Most Favourited ⭐"
       ></MediaListSection>
 

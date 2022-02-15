@@ -14,7 +14,7 @@ import MediaCard from "../MediaCard/MediaCard";
 import "./SearchMediaSection.scss";
 // import "./MediaListSection.scss";
 interface IProps {
-  data: Query | undefined;
+  data: Query | null;
   loading: boolean;
   sectionTitle: string;
   handleSearch: (page?: number) => void;
@@ -215,18 +215,16 @@ const SearchMediaSection: React.FC<IProps> = ({
       </h1>
 
       <div className="medialist">
-        {loading
+        {!data
           ? new Array(10)
               .fill(null)
               .map((_, index) => <LoadingCard key={index.toString()} />)
-          : data?.Page?.media
-          ? data.Page.media.map((media) => {
+          : data.Page?.media?.map((media) => {
               if (media) {
                 return <MediaCard key={media.id} media={media} />;
               }
               return null;
-            })
-          : null}
+            })}
       </div>
       {data && data.Page && data.Page.pageInfo && data.Page?.pageInfo?.total ? (
         <div className="search__pagination">

@@ -13,6 +13,7 @@
     "@types/react-dom": "^17.0.0",
     "contrast": "^1.0.1",
     "graphql": "^16.0.1",
+    "graphql-request": "^4.0.0",
     "qs": "^6.10.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

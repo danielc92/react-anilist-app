@@ -125,6 +125,7 @@ const HomePage: React.FC = () => {
   }, [locationSearch]);
 
   useEffect(() => {
+    // load all data on page load
     // favourites
     graphQLClient
       .request<Query>(GET_PAGE_MEDIA, {
@@ -239,7 +240,7 @@ const HomePage: React.FC = () => {
 
       <MediaListSection
         data={dataCurrent}
-        sectionTitle={`Most highly rated anime for ${currentSeason}, ${currentYear}`}
+        sectionTitle={`Popular anime for ${currentSeason} (${currentYear})`}
       ></MediaListSection>
       <MediaListSection
         data={dataPopular}

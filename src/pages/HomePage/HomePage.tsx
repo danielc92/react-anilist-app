@@ -159,7 +159,7 @@ const HomePage: React.FC = () => {
 
     // current season
     graphQLClient
-      .request<Query>(GET_PAGE_MEDIA, {
+      .request<Query>(GET_PAGE_WITH_SEARCH_MEDIA, {
         seasonYear: currentYear,
         season: currentSeason,
         type: MediaType.Anime,
@@ -243,16 +243,16 @@ const HomePage: React.FC = () => {
         sectionTitle={`Popular anime for ${currentSeason} (${currentYear})`}
       ></MediaListSection>
       <MediaListSection
-        data={dataPopular}
-        sectionTitle="Popular Anime 🏅"
+        data={dataTrending}
+        sectionTitle="Trending now 🔥"
       ></MediaListSection>
       <MediaListSection
-        data={dataTrending}
-        sectionTitle="Trending Anime 🔥"
+        data={dataPopular}
+        sectionTitle="All time popular 🏅"
       ></MediaListSection>
       <MediaListSection
         data={dataFavourites}
-        sectionTitle="Most Favourited ⭐"
+        sectionTitle="All time favourited ⭐"
       ></MediaListSection>
 
       <section className="footer">

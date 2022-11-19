@@ -4,32 +4,16 @@ import qs, { ParsedUrlQueryInput } from "querystring";
 import {
   MediaSort,
   MediaSeason,
-  PageMediaArgs,
   Query,
   MediaStatus,
   MediaFormat,
-  MediaType,
 } from "../../types/anilist/anilist";
 import { useLocation } from "react-router-dom";
 import { useHistory } from "react-router";
 import MediaListSection from "../../components/MediaListSection/MediaListSection";
 import SearchMediaSection from "../../components/SearchSection/SearchMediaSection";
 import { ANILIST_GENRES } from "../../settings/data";
-import { GET_PAGE_MEDIA, GET_PAGE_WITH_SEARCH_MEDIA } from "../../queries";
-import { GraphQLClient } from "graphql-request";
-import {
-  BASE_URL,
-  DEFAULT_PER_PAGE,
-  SEASONAL_PER_PAGE,
-} from "../../settings/api";
-const graphQLClient = new GraphQLClient(BASE_URL, {
-  mode: "cors",
-});
-
-interface PageMediaArgsExtended extends PageMediaArgs {
-  page?: number;
-  perPage?: number;
-}
+import { fetcherSingleton, PageMediaArgsExtended } from "../../fetchers";
 
 const seasons = Object.entries(MediaSeason);
 const statuses = Object.entries(MediaStatus);
@@ -37,30 +21,20 @@ const sorts = Object.entries(MediaSort);
 const formats = Object.entries(MediaFormat);
 
 const HomePage: React.FC = () => {
-  const [dataFavourites, setFavouritesResults] = useState<Query | null>(null);
-  const [dataCurrent, setCurrentSeasonResults] = useState<Query | null>(null);
-  const [dataTrending, setTrendingResults] = useState<Query | null>(null);
-  const [dataPopular, setPopularResults] = useState<Query | null>(null);
-  const [dataSearch, setSearchResults] = useState<Query | null>(null);
+  const [dataFavourites, setFavouritesResults] = useState<Query | null| undefined>(null);
+  const [dataCurrent, setCurrentSeasonResults] = useState<Query | null| undefined>(null);
+  const [dataTrending, setTrendingResults] = useState<Query | null| undefined>(null);
+  const [dataPopular, setPopularResults] = useState<Query | null| undefined>(null);
+  const [dataSearch, setSearchResults] = useState<Query | null | undefined>(null);
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentSeason =
-    now.getMonth() <= 2
-      ? MediaSeason.Winter
-      : now.getMonth() <= 5
-      ? MediaSeason.Spring
-      : now.getMonth() <= 8
-      ? MediaSeason.Summer
-      : MediaSeason.Fall;
   const buildOptionsFromQuery = (url: string) => {
     const parsed = qs.parse(url.replace("?", ""));
-
+console.log(parsed)
     const { search, page, season, seasonYear, genre, status, sort, format } =
       parsed;
 
     const obj: PageMediaArgsExtended = {
-      perPage: DEFAULT_PER_PAGE,
+      perPage: fetcherSingleton.perPage,
     };
 
     if (genre) {
@@ -112,66 +86,31 @@ const HomePage: React.FC = () => {
     useState<PageMediaArgsExtended>(initialState);
 
   useEffect(() => {
-    const currentOptions = buildOptionsFromQuery(
-      locationSearch.replace("?", "")
-    );
-    // search results
-    graphQLClient
-      .request<Query>(GET_PAGE_WITH_SEARCH_MEDIA, currentOptions)
-      .then((results) => {
-        setSearchResults(results);
-      })
-      .catch((err) => console.log("Failed fetching (favourites)."));
+
+    const fetchData = async () => {
+      const searchArgs = buildOptionsFromQuery(
+        locationSearch.replace("?", "")
+      );
+      const results = await fetcherSingleton.fetchSearchResults(searchArgs)
+      setSearchResults(results)
+    }
+    fetchData()
   }, [locationSearch]);
 
   useEffect(() => {
-    // load all data on page load
-    // favourites
-    graphQLClient
-      .request<Query>(GET_PAGE_MEDIA, {
-        sort: [MediaSort.FavouritesDesc],
-        perPage: DEFAULT_PER_PAGE,
-      })
-      .then((results) => {
-        setFavouritesResults(results);
-      })
-      .catch((err) => console.log("Failed fetching (favourites)."));
-    // favourites
-    graphQLClient
-      .request<Query>(GET_PAGE_MEDIA, {
-        sort: [MediaSort.PopularityDesc],
-        perPage: DEFAULT_PER_PAGE,
-      })
-      .then((results) => {
-        setPopularResults(results);
-      })
-      .catch((err) => console.log("Failed fetching (popular)."));
-    // favourites
-    graphQLClient
-      .request<Query>(GET_PAGE_MEDIA, {
-        sort: [MediaSort.TrendingDesc],
-        perPage: DEFAULT_PER_PAGE,
-      })
-      .then((results) => {
-        setTrendingResults(results);
-      })
-      .catch((err) => console.log("Failed fetching (trending)."));
-
-    // current season
-    graphQLClient
-      .request<Query>(GET_PAGE_WITH_SEARCH_MEDIA, {
-        seasonYear: currentYear,
-        season: currentSeason,
-        type: MediaType.Anime,
-        format: MediaFormat.Tv,
-        sort: [MediaSort.ScoreDesc],
-        perPage: SEASONAL_PER_PAGE,
-      })
-      .then((results) => {
-        setCurrentSeasonResults(results);
-      })
-      .catch((err) => console.log("Failed fetching (current season)"));
-  }, []);
+    // Fetch all data on inital page load
+      const fetchData = async () => {
+        const favourites = await fetcherSingleton.fetchFavourites()
+        setFavouritesResults(favourites)
+        const trending = await fetcherSingleton.fetchTrending()
+        setTrendingResults(trending)
+        const currentSeason = await fetcherSingleton.fetchCurrentSeason()
+        setCurrentSeasonResults(currentSeason)
+        const popular = await fetcherSingleton.fetchPopular()
+        setPopularResults(popular)
+      }
+      fetchData()
+    }, []);
 
   const handleSearch = (page?: number) => {
     const queryString = qs.stringify({
@@ -184,7 +123,7 @@ const HomePage: React.FC = () => {
 
   const resetSearch = () => {
     setSearchOptions({ sort: [MediaSort.PopularityDesc] });
-    push(`/?sort=POPULARITY_DESC&page=1&perPage=${DEFAULT_PER_PAGE}`);
+    push(`/?sort=POPULARITY_DESC&page=1&perPage=${fetcherSingleton.perPage}`);
   };
 
   const updateSearch = (newSearch: string) => {
@@ -240,7 +179,7 @@ const HomePage: React.FC = () => {
 
       <MediaListSection
         data={dataCurrent}
-        sectionTitle={`Popular anime for ${currentSeason} (${currentYear})`}
+        sectionTitle={`Popular anime for ${fetcherSingleton.currentYear} (${fetcherSingleton.currentMediaSeason})`}
       ></MediaListSection>
       <MediaListSection
         data={dataTrending}

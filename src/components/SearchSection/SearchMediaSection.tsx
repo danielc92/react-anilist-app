@@ -14,7 +14,7 @@ import MediaCard from "../MediaCard/MediaCard";
 import "./SearchMediaSection.scss";
 // import "./MediaListSection.scss";
 interface IProps {
-  data: Query | null;
+  data: Query | null | undefined;
   loading: boolean;
   sectionTitle: string;
   handleSearch: (page?: number) => void;

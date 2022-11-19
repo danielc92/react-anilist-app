@@ -4,7 +4,7 @@ import "./MediaListSection.scss";
 import MediaCard from "../MediaCard/MediaCard";
 import LoadingCard from "../LoadingCard.scss/LoadingCard";
 interface IProps {
-  data: Query | null;
+  data: Query | null | undefined;
   sectionTitle: string;
 }
 const MediaListSection: React.FC<IProps> = ({ sectionTitle, data }) => {
